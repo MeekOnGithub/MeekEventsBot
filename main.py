@@ -1,3 +1,6 @@
+otken = input("Token : ")
+
+
 import os
 import time
 import sys
@@ -421,4 +424,4 @@ async def ticket(interaction):
     await interaction.send(embed=embed, view= CreateTicket())
 
 
-bot.run("OTkxMzE5NjkyNTc4OTIyNDk2.GeRGrO.ri5PsmPLfK9Q-uVXZkKpTBq65t8WuGAHaifa0o")
+bot.run(otken)
