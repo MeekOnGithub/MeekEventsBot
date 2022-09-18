@@ -1,6 +1,4 @@
-otken = input("Token : ")
-
-
+from logging import exception
 import os
 import time
 import sys
@@ -8,6 +6,7 @@ import asyncio
 import random
 import json
 import nextcord
+import random
 from nextcord import Intents
 from nextcord.ext import commands
 from nextcord.ext import menus
@@ -17,11 +16,13 @@ from colorama import Fore, Back, Style
 import aiohttp
 import asyncio
 import requests
+from python_aternos import Client 
 init()
 
 URL = "https://mcapi.us/server/status?ip=survival-serv.mine.fun"
 
-intents = Intents.default()
+intents = nextcord.Intents.default()
+intents.message_content = True
 intents.members = True
 
 meekid = [724005731228975154]
@@ -33,133 +34,155 @@ stt = "Making money, lol"
 botnormal = "[" + Fore.CYAN + "Bot"  + Style.RESET_ALL + "]"
 boterror = "[" + Fore.RED + "Error"  + Style.RESET_ALL + "]"
 botwarn = "[" + Fore.YELLOW + "Warn"  + Style.RESET_ALL + "]"
+botevent = "[" + Fore.GREEN + "Event"  + Style.RESET_ALL + "]"
 
 async def restartt():
-	try:
-		print(botwarn + " Redémarrage...")
-		os.system("python main.py")
-	except Exception:
-		os.system("./start.sh")
+    try:
+        print(botwarn + " Redémarrage...")
+        os.system("python main.py")
+    except Exception:
+        os.system("./start.sh")
 
 
 
 
+@bot.slash_command(
+    name="runbuild",
+    description="Allumer le serveur de build")
+async def runbuild(interaction: nextcord.Interaction, ip):
+    await interaction.response.defer()
+    aternos = Client.from_credentials('motdepasse', 'mdp')
+    liste_de_serveur = aternos.list_servers()
+    builsrv = None
+    for serv in liste_de_serveur:
+        if serv.address == ip:
+            buildsrv = serv
+    if buildsrv != None:
+        print(botevent + f" Démarrage demander par {interaction.user}") 
+        print("Version du serveur : " + buildsrv.software, buildsrv.version)
 
+        embed=nextcord.Embed(title="Démarrage du serveur de build 🟠")
+        embed.add_field(name=f"Ip : {buildsrv.address}", value=f"")
+        await asyncio.sleep(10)
+        await interaction.followup.send(msgoncm)
+        buildsrv.start()
 
 os.system("cls")
 print(botnormal + " Connection au bot...")
 
 @bot.event
 async def on_ready():
-	try:
-		os.system("cls")
-		print(botnormal + " Bot connecté avec succes")
-		print(botnormal + " En tant que : "+ bot.user.name)
-		await bot.change_presence(activity=nextcord.Game(stt))
-	except Exception:
-		print(botwarn + " Erreur inconnu")
+    try:
+        os.system("cls")
+        print(botnormal + " Bot connecté avec succes")
+        print(botnormal + " En tant que : "+ bot.user.name)
+        await bot.change_presence(activity=nextcord.Game(stt))
+    except Exception:
+        print(botwarn + " Erreur inconnu")
 
 
 
 @bot.slash_command(
-	name="support",
-	description="Supporte moi en me fesant un don !")
-async def support(interaction: nextcord.Interaction):
-	print(botnormal + " Commande support éffectuer avec succes !")
-	try:
-		mssloading = "Paypal : zaideladib@gmail.com"
-		await interaction.send(mssloading, ephemeral=True)
-	except Exception:
-		print("lol")
-
+    name="support",
+    description="Supporte moi en me fesant un don !")
 @commands.is_owner()
-@bot.slash_command(
-	name="restart",
-	description="Rédemmarer le bot ")
 async def support(interaction: nextcord.Interaction):
-	print(botnormal + " Commande support éffectuer avec succes !")
-	try:
-		embed=nextcord.Embed(title="Attention ", description="Êtes-vous sûr de vouloir éteindre le bot ?")
-		view = Restart()
-		interaction = await interaction.send(embed=embed, view=view, ephemeral=True)
-		await view.wait()
-	except Exception:
-		print("lol")
+    print(botnormal + " Commande support éffectuer avec succes !")
+    try:
+        mssloading = "Paypal : zaideladib@gmail.com"
+        await interaction.send(mssloading, ephemeral=True)
+    except Exception:
+        print("lol")
+
+
+@bot.slash_command(
+    name="restart",
+    description="Rédemmarer le bot ")
+@commands.is_owner()
+async def support(interaction: nextcord.Interaction):
+    try:
+        embed=nextcord.Embed(title="Attention ", description="Êtes-vous sûr de vouloir éteindre le bot ?")
+        view = Restart()
+        interaction = await interaction.send(embed=embed, view=view, ephemeral=True)
+        await view.wait()
+    except Exception:
+        print("lol")
 
 
 
 
 @bot.slash_command(
-	name='ping',
-	description='ping')
+    name='ping',
+    description='ping')
+@commands.is_owner()
 async def move(interaction):
-	try:
-		latency = round(bot.latency * 1000)
-		view = Ping()
-		embed=nextcord.Embed(title="Ping 🏓")
-		embed.add_field(name="Ping du bot", value=f"`{latency} ms`")
-		await interaction.send(embed=embed, view=view, ephemeral=True)
-		await view.wait()
-	except Exception as e:
-		print(boterror + " " + str(e))
+    try:
+        latency = round(bot.latency * 1000)
+        view = Ping()
+        embed=nextcord.Embed(title="Ping 🏓")
+        embed.add_field(name="Ping du bot", value=f"`{latency} ms`")
+        await interaction.send(embed=embed, view=view, ephemeral=True)
+        await view.wait()
+    except Exception as e:
+        print(boterror + " " + str(e))
 
 
 
 
 
 class Restart(nextcord.ui.View):
-	def __init__(self):
-		super().__init__()
-		self.value = None
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
-	@nextcord.ui.button(label="Oui", style=nextcord.ButtonStyle.green)
-	async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-		await interaction.response.send_message("Redémmarage...", ephemeral=True)
-		await restartt()
-		self.value = True
+    @nextcord.ui.button(label="Oui", style=nextcord.ButtonStyle.green)
+    async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await interaction.response.send_message("Redémmarage...", ephemeral=True)
+        await restartt()
+        self.value = True
 
-		self.stop()
+        self.stop()
 
 
-	@nextcord.ui.button(label="Non", style=nextcord.ButtonStyle.green)
-	async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-		await interaction.response.send_message("Annulation avec succés", ephemeral=True)
-		self.value = False
-		self.stop()
+    @nextcord.ui.button(label="Non", style=nextcord.ButtonStyle.green)
+    async def cancel(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await interaction.response.send_message("Annulation avec succés", ephemeral=True)
+        self.value = False
+        self.stop()
 
 class Ping(nextcord.ui.View):
-	def __init__(self):
-		super().__init__()
-		self.value = None
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
-	@nextcord.ui.button(label=None, style=nextcord.ButtonStyle.green, emoji="\U0001f5d1")
-	async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-		await message.delete_original_response()
-		self.value = True
-		self.stop()
+    @nextcord.ui.button(label=None, style=nextcord.ButtonStyle.green, emoji="\U0001f5d1")
+    async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await interaction.delete_original_response()
+        self.value = True
+        self.stop()
 
 
-		
+
 
 class Rules(nextcord.ui.View):
-	def __init__(self):
-		super().__init__()
-		self.value = None
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
-	@nextcord.ui.button(label="J'accepte les régles", style=nextcord.ButtonStyle.green, emoji="\u2705")
-	async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-		await interaction.user.add_roles(nextcord.Object(995614973583699979))
-		messageee = "Vous avez acceptez le réglement avec succés !"
-		await interaction.send(messageee, ephemeral=True)
+    @nextcord.ui.button(label="J'accepte les régles", style=nextcord.ButtonStyle.green, emoji="\u2705")
+    async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        await interaction.user.add_roles(nextcord.Object(995614973583699979))
+        messageee = "Vous avez acceptez le réglement avec succés !"
+        await interaction.send(messageee, ephemeral=True)
 
 class Suggestion(nextcord.ui.View):
-	def __init__(self):
-		super().__init__()
-		self.value = None
+    def __init__(self):
+        super().__init__()
+        self.value = None
 
-	@nextcord.ui.button(label="Faites une suggestion vous aussi !", style=nextcord.ButtonStyle.grey, emoji=None, disabled=True)
-	async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-		print("he")
+    @nextcord.ui.button(label="Faites une suggestion vous aussi !", style=nextcord.ButtonStyle.grey, emoji=None, disabled=True)
+    async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
+        print("he")
 
 
 
@@ -173,102 +196,118 @@ class Suggestion(nextcord.ui.View):
 
 
 class DropdownView(nextcord.ui.View):
-	def __init__(self):
-		super().__init__()
+    def __init__(self):
+        super().__init__()
 
-		# Adds the dropdown to our view object.
-		self.add_item(Dropdown())
-
-
+        # Adds the dropdown to our view object.
+        self.add_item(Dropdown())
 
 
 
-@commands.is_owner()
+
+
+
 @bot.slash_command()
+@commands.is_owner()
 async def kick(interaction, membre: nextcord.User, raison):
-	"""Permet de kick un utilisateur"""
-	try:
-			await membre.kick()
-			embed=nextcord.Embed(title="Kick ❌")
-			embed.add_field(name=f"{membre} a bien était kick", value=f"Pour {raison}")
-			await interaction.send(embed=embed, view=view, ephemeral=True)
+    """Permet de kick un utilisateur"""
+    try:
+            await membre.kick()
+            embed=nextcord.Embed(title="Kick ❌")
+            embed.add_field(name=f"{membre} a bien était kick", value=f"Pour {raison}")
 
-	except Exception as e: 
-		print(str(e))
-		
+            await interaction.send(embed=embed, ephemeral=True)
+
+    except Exception as e: 
+        print(str(e))
+
+
+@bot.slash_command()
+@commands.is_owner()
+async def ban(interaction, membre: nextcord.User, raison):
+    """Permet de ban un utilisateur"""
+    try:
+            await membre.ban()
+            embed=nextcord.Embed(title="Ban ❌")
+            embed.add_field(name=f"{membre} a bien était ban", value=f"Pour {raison}")
+
+            await interaction.send(embed=embed, ephemeral=True)
+
+    except Exception as e: 
+        print(boterror + str(e))
 
 @nextcord.ext.tasks.loop(seconds=5, reconnect=True)
 async def joined(message):
-	user = bot.get_user(724005731228975154)
+    user = bot.get_user(724005731228975154)
 
-	r = requests.get(url = URL, params = PARAMS)
+    r = requests.get(url = URL)
 
-	data = r.json()
+    data = r.json()
 
-	players = data['players.now']
+    players = data['players.now']
 
 
-	if players == 0:
+    if players == 0:
 
-		print("working")
-		pass
-		await joined.start()
-	if players != 0:
-		message = "Un joueur a rejoint le serveur !"
-		await user.send(message)
-		await joined.start()
-			
+        print("working")
+        pass
+        await joined.start()
+    if players != 0:
+        message = "Un joueur a rejoint le serveur !"
+        await user.send(message)
+        await joined.start()
+            
 
 
 
 
 
 class suggestion(nextcord.ui.Modal):
-	def __init__(self):
-		super().__init__("Suggestion Event")  
+    def __init__(self):
+        super().__init__("Suggestion Event")  
 
-	 
-		self.name = nextcord.ui.TextInput(
-			label="L'event",
-			min_length=2,
-			max_length=50,
-		)
-		self.add_item(self.name)
+     
+        self.name = nextcord.ui.TextInput(
+            label="L'idée",
+            min_length=2,
+            max_length=50,
+        )
+        self.add_item(self.name)
 
-	  
-		self.description = nextcord.ui.TextInput(
-			label="Explique-nous",
-			style=nextcord.TextInputStyle.paragraph,
-			placeholder="Pourquoi devrions nous choisir celui la",
-			required=False,
-			max_length=1800,
-		)
-		self.add_item(self.description)
+      
+        self.description = nextcord.ui.TextInput(
+            label="Explique-nous",
+            style=nextcord.TextInputStyle.paragraph,
+            placeholder="Pourquoi devrions nous choisir celui la",
+            required=False,
+            max_length=1800,
+        )
+        self.add_item(self.description)
 
-	async def callback(self, interaction: nextcord.Interaction) -> None:
-		try:
-			embed=nextcord.Embed(title="Suggestion d'event 🎈")
-			embed.add_field(name="Par : ", value=f"{interaction.user.mention}", inline=True)
-			embed.add_field(name="Idée :", value=f"{self.description.value}", inline=False)
-			
-			channel = bot.get_channel(1013061716294242354)
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        try:
+            embed=nextcord.Embed(title="Suggestion d'idée 🎈")
+            embed.add_field(name="Idée 💡", value=f"{self.name.value}", inline=True)
+            embed.add_field(name="Pourquoi :", value=f"{self.description.value}", inline=False)
+            
+            channel = bot.get_channel(1015268790667329576)
 
-			view = Suggestion()
-			
-			await interaction.channel.send(embed=embed, view=view)
-		except Exception as e:
-			print(boterror + (str(e)))
+            view = Suggestion()
+            
+            await interaction.channel.send(embed=embed, view=view)
+        except Exception as e:
+            print(boterror + " " + (str(e)))
 
 
-		
+        
 @bot.slash_command()
 async def suggevent(interaction):
-	"""Suggestion d'event"""
-	try:
-		modal = suggestion()
-		await interaction.response.send_modal(modal)
-	except:
-		print("err")
+    """Suggestion d'event"""
+    try:
+        modal = suggestion()
+        await interaction.response.send_modal(modal)
+    except:
+        print("err")
 
 
 
@@ -278,34 +317,26 @@ async def suggevent(interaction):
 
 
 @bot.slash_command()
+@commands.is_owner()
 async def rules(interaction):
-	embed=nextcord.Embed(title="Régles <a:923203708110635109:1012666339292364822> >")
-	embed.add_field(name="1 -", value="`Pas de racisme, ni n-word etc...`", inline=True)
-	embed.add_field(name="2 -", value="`Le contenu NSFW est strictement interdit`", inline=False)
-	embed.add_field(name="3 -", value="`Pas de spam ou d'inondation du chat avec des messages`", inline=True)
-	embed.add_field(name="4 -", value="`Pas de malédictions excessives. Jurer est évidemment autorisé, mais gardez-le au frais.`", inline=False)
-	embed.add_field(name="5 -", value="`Aucune publicité pour d'autres sites / serveurs discord `", inline=True)
-	embed.add_field(name="6 -", value="`Pas de faire passer le contenu de quelqu'un d'autre comme le vôtre.`", inline=False)
-	embed.add_field(name="7 -", value="`Ne causez pas de nuisance dans la communauté, les plaintes répétées de plusieurs membres entraîneront des mesures administratives`", inline=False)
-	embed.add_field(name="8 -", value="`Tout abus de mentions envers un membres du staff (mentions personnelles inclues) ou la communauté est interdit`", inline=True)
-	
-	embed.add_field(name="Régles Minecraft <a:923203708110635109:1012666339292364822>", value=">", inline=False)
-	embed.add_field(name="1 -", value="`Toutes les régles du discord s'appliquent`", inline=True)
-	embed.add_field(name="2 -", value="`Pas de cheat, ne trichez pas en utilisant des bugs pendant l'event`", inline=False)
+    embed=nextcord.Embed(title="Régles <a:923203708110635109:1012666339292364822> >")
+    embed.add_field(name="1 -", value="`Pas de racisme, ni n-word etc...`", inline=True)
+    embed.add_field(name="2 -", value="`Le contenu NSFW est strictement interdit`", inline=False)
+    embed.add_field(name="3 -", value="`Pas de spam ou d'inondation du chat avec des messages`", inline=True)
+    embed.add_field(name="4 -", value="`Pas de malédictions excessives. Jurer est évidemment autorisé, mais gardez-le au frais.`", inline=False)
+    embed.add_field(name="5 -", value="`Aucune publicité pour d'autres sites / serveurs discord `", inline=True)
+    embed.add_field(name="6 -", value="`Pas de faire passer le contenu de quelqu'un d'autre comme le vôtre.`", inline=False)
+    embed.add_field(name="7 -", value="`Ne causez pas de nuisance dans la communauté, les plaintes répétées de plusieurs membres entraîneront des mesures administratives`", inline=False)
+    embed.add_field(name="8 -", value="`Tout abus de mentions envers un membres du staff (mentions personnelles inclues) ou la communauté est interdit`", inline=True)
+    
+    embed.add_field(name="Régles Minecraft <a:923203708110635109:1012666339292364822>", value=">", inline=False)
+    embed.add_field(name="1 -", value="`Toutes les régles du discord s'appliquent`", inline=True)
+    embed.add_field(name="2 -", value="`Pas de cheat, ne trichez pas en utilisant des bugs pendant l'event`", inline=False)
 
-	view = Rules()
+    view = Rules()
 
-	await interaction.send(embed=embed, view=view)
+    await interaction.send(embed=embed, view=view)
 
-@bot.slash_command()
-async def statut(interaction):
-	embed=nextcord.Embed(title="Statut des serveurs")
-	embed.add_field(name="Lobby :", value="🟢", inline=True)
-	embed.add_field(name="Event-1 :", value="🟢", inline=False)
-	embed.add_field(name="Event-2 :", value="🟢", inline=True)
-	embed.add_field(name="Survie :", value="🔴", inline=False)
-
-	await interaction.send(embed=embed)
 
 class CreateTicket(nextcord.ui.View):
     def __init__(self):
@@ -423,5 +454,87 @@ async def ticket(interaction):
     embed.add_field(name="Créer en un en appuyant sur le bouton", value="None")
     await interaction.send(embed=embed, view= CreateTicket())
 
+@bot.slash_command()
+async def calc(interaction: nextcord.Interaction, calcul):
+    if type(eval(calcul)) == int:
+        try:
+            print(botevent + f" Calcul : {calcul}, fait par {interaction.user}")
+            embed = nextcord.Embed(title=f"Résultat de votre calcul 🧮", description=f"= {calcul}")
+            await interaction.send(embed=embed)
+        except ValueError as e:
+            print(boterror + " " + e)
+            await interaction.send("Une erreur est survenu !", ephemeral=True)
+    else:
+        await interaction.send("Tu ne peux pas calculer des lettres, fin ce n'est pas possible pour le moment x)", ephemeral=True)
 
-bot.run(otken)
+
+
+
+@bot.slash_command()
+@commands.has_permissions(manage_guild=True)
+async def say(interaction: nextcord.Interaction, mot):
+    await interaction.send(interaction.arguments)
+
+@bot.event
+async def on_message(message: nextcord.Message):
+    if message.guild is None and not message.author.bot:
+        print(f"{message.author} > : {message.content}")
+        rsp = input("Bot : ")
+        await message.channel.send(rsp)
+    await bot.process_commands(message)
+
+@bot.slash_command()
+@commands.has_permissions(manage_guild=True)
+async def sendmp(interaction, user: nextcord.User, *, message: str):
+    try:
+        await user.send(message)
+        await interaction.send(f"`Message envoyé à` : {user.mention}", ephemeral=True)
+    except Exception as e:
+        await interaction.send(f"Impossible d'envoyer le message à {user.mention}", ephemeral=True)
+        await interaction.send(f"{user.mention}, les messages privés sur ce serveur sont désactivés, je vous prie de les désactives ^^")
+        print(boterror + " " + str(e))
+    
+delmesg = [f"Bien essayer, les liens sont interdit ! ", f"Faudra trouver mieux pour m'avoir et envoyer des liens", "Tss, arrête les liens la", "play.meekevent.fr"]
+meekmnt = ["<@724005731228975154>, il t'appelle !", "Qui as 5 € a passez", "Qui veux nitro ?", "amogus", "Je vous bz sur fortnite / minecraft"]
+
+#@bot.event 
+#async def on_message(message: nextcord.Message):
+#   try:
+#       if message.content in ("<@724005731228975154>") and message.author.bot =! message.author.id:
+#           print(botevent + f" Vous avez était mentionner par {message.author}")
+#           await message.channel.send(random.choice(meekmnt))
+#       if message.content.startswith("https://") or ("http://") and not message.author.bot or message.author.id == (724005731228975154):
+#           await message.delete()
+#           await message.channel.send(random.choice(delmesg))
+#   except Exception as e:
+#       print(boterror + " " + str(e))
+#       await message.channel.send("J'allais faire une blague mais j'ai pas pu :/")
+
+@bot.event 
+async def on_message(message):
+    if message.content in "Internal Exception: io.netty.handler.timeout.ReadTimeoutException" and message.channel.id == (1020371565789069312): 
+        try:
+            await message.channel.send(f"""
+                Hey {message.author.mention} :wave:,
+
+                Je pense que :
+                    
+                     1. `Le jeu sur votre ordinateur ne peut pas traiter les données du serveur assez rapidement, ce qui vous oblige à ne plus être synchronisé avec le serveur.`
+
+                Tu devrais peût-etre faire :
+                     1. `Vérifiez votre connexion Internet pour vous assurer qu'il n'y a pas de perte de paquets.`
+                     2. `Assurez-vous que votre ordinateur est suffisamment rapide pour exécuter le jeu. Il faut plus de puissance de traitement pour y jouer sur un serveur qu'en solo.`
+
+                     Ceci est un message automatique, merci de contacter un développeur si besoin !""")
+        except Exception as e:
+            print(boterror + " " + str(e))
+            embed = nextcord.Embed(title="Erreurr ❌")
+            emebed.add_field(name="Détail :", value =e)
+            await message.channel.send(embed=embed)
+
+            
+
+
+
+
+bot.run("token")
