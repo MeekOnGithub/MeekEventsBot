@@ -1,3 +1,12 @@
+token = input("Token : ")
+aternosclient_username = input("Pseudo Aternos : ")
+aternosclient_password = input("Mot de passe Aternos :")
+Your_id = input("Ton id discord : ")
+urlsrvmc = input("Ip / Adress de ton serveur mc (Facultaif) : ")
+Statutdubot = input("Statut du bot : ")
+memberroles = input("Id du role membre (Pour valider le réglement) : ")
+ideachannel = input("Id du salon suggestion : ")
+
 from logging import exception
 import os
 import time
@@ -19,7 +28,7 @@ import requests
 from python_aternos import Client 
 init()
 
-URL = "https://mcapi.us/server/status?ip=survival-serv.mine.fun"
+URL = "https://mcapi.us/server/status?ip=" + urlsrvmc
 
 intents = nextcord.Intents.default()
 intents.message_content = True
@@ -28,7 +37,7 @@ intents.members = True
 meekid = [724005731228975154]
 
 bot = commands.Bot(command_prefix='-', intents=intents, help_command=None, case_insensitive=True, owner_ids = set(meekid))
-stt = "Making money, lol"
+stt = Statutdubot
 
 
 botnormal = "[" + Fore.CYAN + "Bot"  + Style.RESET_ALL + "]"
@@ -51,7 +60,7 @@ async def restartt():
     description="Allumer le serveur de build")
 async def runbuild(interaction: nextcord.Interaction, ip):
     await interaction.response.defer()
-    aternos = Client.from_credentials('motdepasse', 'mdp')
+    aternos = Client.from_credentials(aternosclient_username, aternosclient_password)
     liste_de_serveur = aternos.list_servers()
     builsrv = None
     for serv in liste_de_serveur:
@@ -171,7 +180,7 @@ class Rules(nextcord.ui.View):
 
     @nextcord.ui.button(label="J'accepte les régles", style=nextcord.ButtonStyle.green, emoji="\u2705")
     async def confirm(self, button: nextcord.ui.Button, interaction: nextcord.Interaction):
-        await interaction.user.add_roles(nextcord.Object(995614973583699979))
+        await interaction.user.add_roles(nextcord.Object(memberrole))
         messageee = "Vous avez acceptez le réglement avec succés !"
         await interaction.send(messageee, ephemeral=True)
 
